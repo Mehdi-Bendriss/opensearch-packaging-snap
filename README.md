@@ -1,0 +1,2 @@
+# opensearch-packaging-snap
+

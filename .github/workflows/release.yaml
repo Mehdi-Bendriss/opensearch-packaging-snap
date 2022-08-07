@@ -1,0 +1,11 @@
+name: Release OpenSearch snap to Snapcraft
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build: {}
+
+  publish: {}

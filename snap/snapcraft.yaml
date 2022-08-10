@@ -14,6 +14,19 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
+# TODO: set: export ES_TMPDIR=/usr/share/elasticsearch/tmp
+
+system-usernames:
+  opensearch: shared
+
+apps:
+  daemon:
+    daemon: simple
+    command-chain:
+      - bin/systemd/create-service.sh
+    command: bin/start.sh
+    reload-command: bin/opensearch
+
 parts:
   opensearch:
     plugin: dump
@@ -21,8 +34,7 @@ parts:
     source-type: tar
     override-build: |
       snapcraftctl build
-      ls -la $SNAP_DATA
-      echo y | bin/opensearch-plugin install https://opensearch-builds.s3.eu-west-1.amazonaws.com/plugins/security/opensearch-security-$SNAPCRAFT_PROJECT_VERSION.0.zip
+      bin/install.sh
     stage-packages:
       - libfreetype6
       - libpng16-16
@@ -30,5 +42,5 @@ parts:
       - libx11-6
       - libxext6
       - libxi6
-      - libxtst6
+      - libboost-all-dev
       - libasound2

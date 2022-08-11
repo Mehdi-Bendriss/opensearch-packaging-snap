@@ -44,3 +44,4 @@ parts:
       - libxi6
       - libboost-all-dev
       - libasound2
+      - util-linux

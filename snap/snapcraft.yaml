@@ -16,8 +16,19 @@ confinement: devmode # use 'strict' once you have the right plugs and slots
 
 # TODO: set: export ES_TMPDIR=/usr/share/elasticsearch/tmp
 
+assumes:
+  - command-chain
+  - snap-env
+  - snapd2.56
+
 system-usernames:
-  opensearch: shared
+  snap_daemon: shared
+
+plugs:
+  systemd-write:
+    interface: system-files
+    write:
+      - /etc/systemd/system/
 
 apps:
   daemon:
@@ -26,6 +37,14 @@ apps:
       - bin/systemd/create-service.sh
     command: bin/start.sh
     reload-command: bin/opensearch
+    environment:
+      OPENSEARCH_HOME: $SNAP_DATA
+      OPENSEARCH_JAVA_HOME: $SNAP_DATA/jdk
+      OPENSEARCH_PATH_CONF: $SNAP_DATA/config
+    plugs:
+      - network
+      - network-bind
+      - systemd-write
 
 parts:
   opensearch:

@@ -28,15 +28,15 @@ plugs:
   systemd-write:
     interface: system-files
     write:
-      - /etc/systemd/system/
+      - /etc/systemd/system
 
 apps:
   daemon:
     daemon: simple
     command-chain:
-      - bin/systemd/create-service.sh
-    command: bin/start.sh
-    reload-command: bin/opensearch
+      - bin/create-opensearch-service.sh
+    command: bin/start-opensearch.sh
+    reload-command: bin/start-opensearch.sh
     environment:
       OPENSEARCH_HOME: $SNAP_DATA
       OPENSEARCH_JAVA_HOME: $SNAP_DATA/jdk
@@ -51,16 +51,31 @@ parts:
     plugin: dump
     source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-min-$SNAPCRAFT_PROJECT_VERSION-linux-x64.tar.gz
     source-type: tar
-    override-build: |
-      snapcraftctl build
-      bin/install.sh
     stage-packages:
+      - util-linux
       - libfreetype6
       - libpng16-16
       - libxrender1
       - libx11-6
       - libxext6
       - libxi6
+      - libxtst6
+      - libpsm-infinipath1
       - libboost-all-dev
       - libasound2
-      - util-linux
+    override-prime: |
+      snapcraftctl prime
+      mkdir -p wrappers
+
+  wrapper-scripts:
+    plugin: dump
+    source: ./wrappers
+    source-type: local
+    override-build: |
+      snapcraftctl build
+      pwd
+      ls -la
+    organize:
+      start.sh: bin/start-opensearch.sh
+      systemd/create-service.sh: bin/create-opensearch-service.sh
+      systemd/set-limits.conf: etc/set-opensearch-limits.conf

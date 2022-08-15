@@ -8,11 +8,11 @@ exec 1>>$script_log
 exec 2>&1
 
 
-export ES_TMPDIR=${ES_TMPDIR}
+export OPENSEARCH_TMPDIR=${OPENSEARCH_TMPDIR}
 
 # start
 "${SNAP}"/usr/bin/setpriv \
   --clear-groups \
   --reuid snap_daemon \
   --regid snap_daemon -- \
-  "${OPENSEARCH_PATH_CONF}" "${OPENSEARCH_HOME}"/bin/opensearch
+  "${OPENSEARCH_HOME}"/bin/opensearch

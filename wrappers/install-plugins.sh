@@ -15,8 +15,12 @@ function install_plugin () {
     fi
 
     INSTALLATION_PATH="${OPENSEARCH_HOME}/plugins/$1"
-    chmod -R 770 "${INSTALLATION_PATH}"
-    chown -R snap_daemon:snap_daemon "${INSTALLATION_PATH}"
+    CONFIG_PATH="${OPENSEARCH_HOME}/config/$1"
+
+    for path in "${INSTALLATION_PATH}" "${CONFIG_PATH}"; do
+        chmod -R 770 "${path}"
+        chown -R snap_daemon:snap_daemon "${path}"
+    done
 
 }
 

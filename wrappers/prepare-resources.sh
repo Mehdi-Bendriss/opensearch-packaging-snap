@@ -15,6 +15,11 @@ function add_folder () {
     set_access_restrictions "$1" "$2"
 }
 
+function add_file () {
+    touch "$1"
+    set_access_restrictions "$1" "$2"
+}
+
 function dir_copy_if_not_exists () {
     cp -R -n -r -p "${SNAP}/$1" "$2"
 
@@ -38,7 +43,7 @@ dir_copy_if_not_exists "lib" "${SNAP_DATA}" 550
 dir_copy_if_not_exists "modules" "${SNAP_DATA}" 550
 dir_copy_if_not_exists "plugins" "${SNAP_DATA}" 770
 
-dir_copy_if_not_exists "config" "${SNAP_COMMON}"
+dir_copy_if_not_exists "config" "${SNAP_COMMON}" 770
 
 add_folder "${SNAP_COMMON}/data" 770
 add_folder "${SNAP_COMMON}/logs" 774
@@ -46,3 +51,7 @@ add_folder "${SNAP_COMMON}/tmp" 770
 
 set_property_if_not_exists "${SNAP_COMMON}/config/opensearch.yml" "path.data:" "path.data: ${SNAP_COMMON}/data"
 set_property_if_not_exists "${SNAP_COMMON}/config/opensearch.yml" "path.logs:" "path.logs: ${SNAP_COMMON}/logs"
+
+# add_file "${SNAP_COMMON}/logs/gc.log" 774
+
+set_property_if_not_exists "${SNAP_COMMON}/config/jvm.options" "=logs/" "path.data: ${SNAP_COMMON}/logs/"

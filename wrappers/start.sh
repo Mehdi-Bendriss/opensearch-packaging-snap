@@ -2,7 +2,7 @@
 
 set -eux
 
-DAEMON_SYSTEMD_PATH="/etc/systemd/system/snap.${PROJECT_NAME}.daemon.service.d"
+DAEMON_SYSTEMD_PATH="/etc/systemd/system/snap.opensearch.daemon.service.d"
 script_log="${DAEMON_SYSTEMD_PATH}"/start.log
 exec 1>>$script_log
 exec 2>&1

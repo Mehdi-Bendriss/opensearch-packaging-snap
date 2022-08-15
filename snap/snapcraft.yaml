@@ -48,13 +48,15 @@ apps:
   install-plugins:
     daemon: oneshot
     after:
-      - expose-resources
+      - prepare-resources
     command: wrappers/install-plugins.sh
     plugs:
       - network
       - network-bind
     environment:
+      SNAP: ${SNAP}
       OPENSEARCH_HOME: ${SNAP_DATA}
+      OPENSEARCH_PATH_CONF: ${SNAP_COMMON}/config
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
   daemon:
@@ -74,8 +76,6 @@ apps:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
-# hooks:
-
 
 parts:
   wrapper-scripts:
@@ -92,7 +92,7 @@ parts:
     plugin: dump
     source: snap/local
     organize:
-      systemd/set-limits.conf: etc/set-opensearch-limits.conf
+      systemd/override.conf: etc/systemd/override.conf
 
   opensearch:
     plugin: dump

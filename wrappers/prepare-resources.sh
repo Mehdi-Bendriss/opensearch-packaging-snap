@@ -60,18 +60,9 @@ dir_copy_if_not_exists "config" "${SNAP_COMMON}" 770
 add_folder "${SNAP_COMMON}/data" 770
 add_folder "${SNAP_COMMON}/logs" 774
 add_folder "${SNAP_COMMON}/tmp" 770
+add_folder "${SNAP_COMMON}/certificates" 770
 
 set_property_line_if_not_exists "${SNAP_COMMON}/config/opensearch.yml" "path.data:" "path.data: ${SNAP_COMMON}/data"
 set_property_line_if_not_exists "${SNAP_COMMON}/config/opensearch.yml" "path.logs:" "path.logs: ${SNAP_COMMON}/logs"
 
-# add_file "${SNAP_COMMON}/logs/gc.log" 774
-
 set_property "${SNAP_COMMON}/config/jvm.options" "=logs/" "=${SNAP_COMMON}/logs/"
-
-echo "SNAP_COMMON"
-ls -la ${SNAP_COMMON}
-
-echo "-----"
-
-echo "SNAP_DATA"
-ls -la ${SNAP_DATA}

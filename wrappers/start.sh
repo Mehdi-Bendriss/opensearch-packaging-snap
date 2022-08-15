@@ -8,6 +8,18 @@ exec 1>>$script_log
 exec 2>&1
 
 
+function disable_security_plugin () {
+    key="plugins.security.disabled:"
+    conf_file="${OPENSEARCH_PATH_CONF}/opensearch.yml"
+
+    if ! grep -q "^${key}" "${conf_file}";
+    then
+        sed -i "s@.*${key}.*@${key}: true@" "${conf_file}"
+    fi
+}
+
+disable_security_plugin
+
 export OPENSEARCH_TMPDIR=${OPENSEARCH_TMPDIR}
 
 # start

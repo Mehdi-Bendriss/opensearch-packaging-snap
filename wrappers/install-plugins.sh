@@ -22,17 +22,6 @@ function install_plugin () {
       echo y | "${OPENSEARCH_HOME}"/bin/opensearch-plugin install "$2"
     fi
 
-    echo "exposed plugins"
-    INSTALLATION_PATH="${OPENSEARCH_HOME}/plugins/$1"
-    ls -la ${INSTALLATION_PATH}
-
-    echo "exposed conf"
-    CONFIG_PATH="${OPENSEARCH_PATH_CONF}/$1"
-    ls -la ${CONFIG_PATH}
-
-    echo "confined dir"
-    ls -la ${SNAP}/config/
-
     for path in "${INSTALLATION_PATH}" "${CONFIG_PATH}"; do
         chmod -R 770 "${path}"
         chown -R snap_daemon:snap_daemon "${path}"

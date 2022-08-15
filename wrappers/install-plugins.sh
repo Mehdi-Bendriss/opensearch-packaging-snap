@@ -22,6 +22,9 @@ function install_plugin () {
       echo y | "${OPENSEARCH_HOME}"/bin/opensearch-plugin install "$2"
     fi
 
+    INSTALLATION_PATH="${OPENSEARCH_HOME}/plugins/$1"
+    CONFIG_PATH="${OPENSEARCH_PATH_CONF}/$1"
+
     for path in "${INSTALLATION_PATH}" "${CONFIG_PATH}"; do
         chmod -R 770 "${path}"
         chown -R snap_daemon:snap_daemon "${path}"

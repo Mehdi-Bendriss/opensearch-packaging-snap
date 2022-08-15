@@ -14,8 +14,6 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
-# TODO: set: export ES_TMPDIR=/usr/share/elasticsearch/tmp
-
 assumes:
   - command-chain
   - snap-env
@@ -31,25 +29,74 @@ plugs:
       - /etc/systemd/system
 
 apps:
+  init:
+    daemon: oneshot
+    install-mode: enable
+    command: wrappers/init.sh
+    plugs:
+      - systemd-write
+    environment:
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+      PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
+
+  expose-resources:
+    daemon: oneshot
+    after:
+      - init
+    command: wrappers/expose-resources.sh
+
+  install-plugins:
+    daemon: oneshot
+    after:
+      - expose-resources
+    command: wrappers/install-plugins.sh
+    plugs:
+      - network
+      - network-bind
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
+
   daemon:
     daemon: simple
-    command-chain:
-      - bin/create-opensearch-service.sh
-    command: bin/start-opensearch.sh
-    reload-command: bin/start-opensearch.sh
-    environment:
-      OPENSEARCH_HOME: $SNAP_DATA
-      OPENSEARCH_JAVA_HOME: $SNAP_DATA/jdk
-      OPENSEARCH_PATH_CONF: $SNAP_DATA/config
+    install-mode: disable
+    command: wrappers/start.sh
+    reload-command: wrappers/start.sh
     plugs:
       - network
       - network-bind
       - systemd-write
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      OPENSEARCH_JAVA_HOME: ${SNAP_DATA}/jdk
+      OPENSEARCH_PATH_CONF: ${SNAP_COMMON}/config
+      ES_TMPDIR: ${SNAP_COMMON}/tmp
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+      PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
+
+# hooks:
+
 
 parts:
+  wrapper-scripts:
+    plugin: dump
+    source: ./wrappers
+    source-type: local
+    organize:
+      init.sh: wrappers/init.sh
+      expose-resources.sh: wrappers/expose-resources.sh
+      install-plugins.sh: wrappers/install-plugins.sh
+      start.sh: wrappers/start.sh
+
+  wrapper-configs:
+    plugin: dump
+    source: snap/local
+    organize:
+      systemd/set-limits.conf: etc/set-opensearch-limits.conf
+
   opensearch:
     plugin: dump
-    source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-min-$SNAPCRAFT_PROJECT_VERSION-linux-x64.tar.gz
+    source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-min-$SNAPCRAFT_PROJECT_VERSION-linux.tar.gz
     source-type: tar
     stage-packages:
       - util-linux
@@ -63,19 +110,4 @@ parts:
       - libpsm-infinipath1
       - libboost-all-dev
       - libasound2
-    override-prime: |
-      snapcraftctl prime
-      mkdir -p wrappers
 
-  wrapper-scripts:
-    plugin: dump
-    source: ./wrappers
-    source-type: local
-    override-build: |
-      snapcraftctl build
-      pwd
-      ls -la
-    organize:
-      start.sh: bin/start-opensearch.sh
-      systemd/create-service.sh: bin/create-opensearch-service.sh
-      systemd/set-limits.conf: etc/set-opensearch-limits.conf

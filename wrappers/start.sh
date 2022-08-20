@@ -24,7 +24,7 @@ function disable_security_plugin () {
     fi
 }
 
-snap_logging "service-start"
+snap_logging "daemon"
 
 disable_security_plugin
 

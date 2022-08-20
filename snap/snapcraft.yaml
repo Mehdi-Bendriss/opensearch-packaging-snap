@@ -61,6 +61,18 @@ apps:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
+  add-plugin:
+    command: wrappers/add-plugin.sh
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+
+  list-plugins:
+    command: wrappers/list-plugins.sh
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+
 
 parts:
   wrapper-scripts:
@@ -68,10 +80,9 @@ parts:
     source: ./wrappers
     source-type: local
     organize:
-      init.sh: wrappers/init.sh
-      prepare-resources.sh: wrappers/prepare-resources.sh
-      install-plugins.sh: wrappers/install-plugins.sh
       start.sh: wrappers/start.sh
+      add-plugin.sh: wrappers/add-plugin.sh
+      list-plugins.sh: wrappers/list-plugins.sh
 
   wrapper-configs:
     plugin: dump
@@ -95,4 +106,3 @@ parts:
       - libpsm-infinipath1
       - libboost-all-dev
       - libasound2
-

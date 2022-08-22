@@ -22,8 +22,8 @@ jobs:
 
       - name: Install environment pre-requisites
         run: |
-          snap install snapcraft --classic
-          snap install multipass --classic
+          sudo snap install snapcraft --classic
+          sudo snap install multipass --classic
 
       - id: build-snap
         name: Build snap

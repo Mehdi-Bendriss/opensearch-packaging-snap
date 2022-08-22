@@ -21,7 +21,11 @@ jobs:
           ref: edge
 
       - name: Install environment pre-requisites
-        run: |
+        run: >
+          snap version
+          sudo snap install multipass
+          ls -l /var/snap/multipass/common/multipass_socket
+          sudo chmod 666 /var/snap/multipass/common/multipass_socket
           sudo snap install snapcraft --classic
 
       - id: build-snap

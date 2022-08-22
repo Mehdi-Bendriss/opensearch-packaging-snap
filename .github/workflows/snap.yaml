@@ -21,7 +21,7 @@ jobs:
           ref: edge
 
       - name: Install environment pre-requisites
-        run: >
+        run: |
           snap version
           sudo snap install multipass
           ls -l /var/snap/multipass/common/multipass_socket

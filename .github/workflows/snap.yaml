@@ -1,0 +1,74 @@
+name: Build OpenSearch from source and run tests
+
+env:
+  VERSION: 2.2.0
+
+on:
+  push:
+    branches:
+      - edge
+
+jobs:
+  build:
+    name: Build Snap
+    runs-on: ubuntu-22.04
+    outputs:
+      snap-file: ${{ steps.build-snap.outputs.snap }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: edge
+
+      - name: Install environment pre-requisites
+        run: |
+          snap install snapcraft --classic
+          snap install multipass --classic
+
+      - id: build-snap
+        name: Build snap
+        run: |
+          snapcraft --debug
+
+      - name: Upload built snap job artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: opensearch_snap
+          path: $GITHUB_WORKSPACE/opensearch_$VERSION_amd64.snap
+
+  publish:
+    name: publish
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    env:
+      SNAPCRAFT_CREDENTIALS_KEY: ${{ secrets.SNAPCRAFT_CREDENTIALS_KEY }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: edge
+
+      - name: Download snap file
+        uses: actions/download-artifact@v3
+        with:
+          name: opensearch_snap
+          path: $GITHUB_WORKSPACE
+
+      - name: Decrypt credentials
+        run: >
+          pwd 
+          ls -la
+          openssl aes-256-cbc -d -pbkdf2 \
+            -in .github/workflows/snapcraft-credentials.enc \
+            -out decrypted_credentials \
+            -k $SNAPCRAFT_CREDENTIALS_KEY
+
+      - name: Authenticate snapcraft
+        run: |
+          snapcraft login --with decrypted_credentials
+
+#      - name: Publish snap
+#        run: |
+#          snapcraft push *.snap --release edge

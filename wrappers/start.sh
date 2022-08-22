@@ -24,7 +24,20 @@ function disable_security_plugin () {
     fi
 }
 
-snap_logging "daemon"
+
+# -------------------------------
+
+# system config
+if ! snapctl is-connected systemd-write;
+then
+    echo "Please run the following command: sudo snap connect opensearch:systemd-write"
+    echo "Then run: sudo snap restart opensearch.daemon"
+    exit 1
+fi
+
+# snap_logging "daemon"
+
+# ---------------------------------
 
 disable_security_plugin
 
@@ -32,7 +45,7 @@ export OPENSEARCH_TMPDIR=${OPENSEARCH_TMPDIR}
 
 # start
 "${SNAP}"/usr/bin/setpriv \
-  --clear-groups \
-  --reuid snap_daemon \
-  --regid snap_daemon -- \
-  "${OPENSEARCH_HOME}"/bin/opensearch
+    --clear-groups \
+    --reuid snap_daemon \
+    --regid snap_daemon -- \
+    "${OPENSEARCH_HOME}"/bin/opensearch

@@ -29,16 +29,11 @@ plugs:
       - /etc/systemd/system
 
 hooks:
-  install:
-    plugs:
-      - systemd-write
-    environment:
-      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
-
   configure:
     plugs:
       - network
       - network-bind
+      - systemd-write
     environment:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
@@ -53,6 +48,7 @@ apps:
       - network
       - network-bind
       - systemd-write
+      - mount-observe
     environment:
       OPENSEARCH_HOME: ${SNAP_DATA}
       OPENSEARCH_JAVA_HOME: ${SNAP_DATA}/jdk

@@ -5,14 +5,6 @@ name=""
 location=""  # zip served through https:// or file:///
 
 
-function snap_logging () {
-    SNAP_ACTIONS_LOG_DIR="/etc/systemd/system/snap.${PROJECT_NAME}.daemon.service.d/logs"
-
-    script_log="${SNAP_ACTIONS_LOG_DIR}/$1.log"
-    exec 1>>"${script_log}"
-    exec 2>&1
-}
-
 function parse_args () {
     while [ $# -gt 0 ]; do
         if [[ $1 == "--help" ]]; then
@@ -46,8 +38,6 @@ function install_plugin () {
     done
 
 }
-
-snap_logging "add-plugin"
 
 
 if [[ ! ${name} == "opensearch-*" ]];

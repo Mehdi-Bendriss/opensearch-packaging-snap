@@ -24,6 +24,7 @@ jobs:
         run: |
           sudo snap install snapcraft --classic
           sudo snap install multipass --classic
+          sudo chmod a+w /var/snap/multipass/common/multipass_socket
 
       - id: build-snap
         name: Build snap

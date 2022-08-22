@@ -1,7 +1,7 @@
 name: opensearch # you probably want to 'snapcraft register <name>'
 base: core20 # the base snap is the execution environment for this snap
 
-version: '2.1.0' # just for humans, typically '1.2+git' or '1.3.2'
+version: '2.2.0' # just for humans, typically '1.2+git' or '1.3.2'
 
 summary: 'OpenSearch: community-driven, Apache 2.0-licensed search and analytics suite.'
 description: |
@@ -12,7 +12,7 @@ description: |
 
 grade: devel # must be 'stable' to release into candidate/stable channels
 
-confinement: devmode # use 'strict' once you have the right plugs and slots
+confinement: strict # use 'strict' once you have the right plugs and slots
 
 assumes:
   - command-chain
@@ -28,37 +28,17 @@ plugs:
     write:
       - /etc/systemd/system
 
-apps:
-  init:
-    daemon: oneshot
-    install-mode: enable
-    command: wrappers/init.sh
+hooks:
+  configure:
     plugs:
+      - network
+      - network-bind
       - systemd-write
     environment:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
-  prepare-resources:
-    daemon: oneshot
-    after:
-      - init
-    command: wrappers/prepare-resources.sh
-
-  install-plugins:
-    daemon: oneshot
-    after:
-      - prepare-resources
-    command: wrappers/install-plugins.sh
-    plugs:
-      - network
-      - network-bind
-    environment:
-      SNAP: ${SNAP}
-      OPENSEARCH_HOME: ${SNAP_DATA}
-      OPENSEARCH_PATH_CONF: ${SNAP_COMMON}/config
-      PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
-
+apps:
   daemon:
     daemon: simple
     install-mode: disable
@@ -68,6 +48,7 @@ apps:
       - network
       - network-bind
       - systemd-write
+      - mount-observe
     environment:
       OPENSEARCH_HOME: ${SNAP_DATA}
       OPENSEARCH_JAVA_HOME: ${SNAP_DATA}/jdk
@@ -76,6 +57,18 @@ apps:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
+  add-plugin:
+    command: wrappers/add-plugin.sh
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+
+  list-plugins:
+    command: wrappers/list-plugins.sh
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+
 
 parts:
   wrapper-scripts:
@@ -83,10 +76,9 @@ parts:
     source: ./wrappers
     source-type: local
     organize:
-      init.sh: wrappers/init.sh
-      prepare-resources.sh: wrappers/prepare-resources.sh
-      install-plugins.sh: wrappers/install-plugins.sh
       start.sh: wrappers/start.sh
+      add-plugin.sh: wrappers/add-plugin.sh
+      list-plugins.sh: wrappers/list-plugins.sh
 
   wrapper-configs:
     plugin: dump
@@ -96,7 +88,7 @@ parts:
 
   opensearch:
     plugin: dump
-    source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-min-$SNAPCRAFT_PROJECT_VERSION-linux.tar.gz
+    source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-$SNAPCRAFT_PROJECT_VERSION-linux.tar.gz
     source-type: tar
     stage-packages:
       - util-linux
@@ -110,4 +102,3 @@ parts:
       - libpsm-infinipath1
       - libboost-all-dev
       - libasound2
-

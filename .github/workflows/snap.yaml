@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build Snap
     runs-on: ubuntu-22.04
+    container:
+      image: ubuntu:22.04
     outputs:
       snap-file: ${{ steps.build-snap.outputs.snap }}
     steps:
@@ -44,6 +46,8 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-22.04
+    container:
+      image: ubuntu:22.04
     needs:
       - build
     env:

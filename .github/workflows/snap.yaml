@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: opensearch_snap
-          path: $GITHUB_WORKSPACE/opensearch_$VERSION_amd64.snap
+          path: opensearch_${{env.VERSION}}_amd64.snap
 
   publish:
     name: publish
@@ -44,17 +44,11 @@ jobs:
         with:
           ref: edge
 
-      - name: Install environment pre-requisites
-        run: |
-          snap version
-          sudo snap refresh multipass
-          sudo snap refresh snapcraft
-
       - name: Download snap file
         uses: actions/download-artifact@v3
         with:
           name: opensearch_snap
-          path: $GITHUB_WORKSPACE
+          path: ./
 
       - name: Decrypt credentials
         run: >

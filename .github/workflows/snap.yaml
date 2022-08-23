@@ -22,6 +22,9 @@ jobs:
 
       - name: Install environment pre-requisites
         run: |
+          grep -Eoc '(vmx|svm)' /proc/cpuinfo
+          sudo apt-get install qemu-kvm libvirt-bin bridge-utils virtinst virt-manager -y; sudo systemctl is-active libvirtd
+          sudo usermod -aG libvirt $USER; sudo usermod -aG kvm $USER
           sudo snap install core; snap version; journalctl -xu snapd.service; systemctl status snapd.service
           sudo snap refresh snapcraft; sudo snap install multipass; ls -la /var/snap/multipass/common/multipass_socket || true;
           sudo snap refresh multipass; snap info multipass
@@ -32,7 +35,7 @@ jobs:
         name: Build snap
         run: |
           ls -la /var/snap/multipass/common/
-          sudo chmod a+rw /var/snap/multipass/common/multipass_socket; snapcraft --debug; groups | grep sudo || true
+          sudo chmod a+rw /var/snap/multipass/common/multipass_socket; kvm-ok; snapcraft --debug; groups | grep sudo || true
 
       - name: Upload built snap job artifact
         uses: actions/upload-artifact@v3

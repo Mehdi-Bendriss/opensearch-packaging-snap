@@ -24,7 +24,7 @@ jobs:
         run: |
           sudo snap install core; snap version; journalctl -xu snapd.service; systemctl status snapd.service
           sudo snap refresh snapcraft; sudo snap install multipass; sudo snap refresh multipass; journalctl -xu snapd.service
-          
+          sudo snap install snapcraft
 
       - id: build-snap
         name: Build snap

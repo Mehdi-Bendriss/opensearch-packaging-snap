@@ -13,7 +13,7 @@ jobs:
     name: Build Snap
     runs-on: ubuntu-22.04
     container:
-      image: snapcraft
+      image: ubuntu:22.04
     outputs:
       snap-file: ${{ steps.build-snap.outputs.snap }}
     steps:
@@ -24,7 +24,8 @@ jobs:
 
       - name: Install environment pre-requisites
         run: |
-          snap version
+          snap version; journalctl -xu snapd.service
+          systemctl status snapd.service
           sudo snap refresh multipass
           sudo snap refresh snapcraft
 
@@ -43,7 +44,7 @@ jobs:
     name: publish
     runs-on: ubuntu-22.04
     container:
-      image: snapcraft
+      image: ubuntu:22.04
     needs:
       - build
     env:

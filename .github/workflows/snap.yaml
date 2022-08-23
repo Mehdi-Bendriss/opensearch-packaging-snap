@@ -25,7 +25,7 @@ jobs:
           sudo snap install core; snap version; journalctl -xu snapd.service; systemctl status snapd.service
           sudo snap refresh snapcraft; sudo snap install multipass; ls -la /var/snap/multipass/common/multipass_socket || true;
           sudo find / -name "multipass_socket" || true
-          sudo snap refresh multipass; groups | grep sudo; snap info multipass
+          sudo snap refresh multipass; snap info multipass
           journalctl -xu multipass.multipassd; sudo snap install snapcraft --classic
 
       - id: build-snap

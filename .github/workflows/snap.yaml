@@ -26,12 +26,13 @@ jobs:
           sudo snap refresh snapcraft; sudo snap install multipass; ls -la /var/snap/multipass/common/multipass_socket || true;
           sudo find / -name "multipass_socket" || true
           sudo snap refresh multipass; snap info multipass
-          journalctl -xu multipass.multipassd; sudo snap install snapcraft --classic
+          journalctl -xu multipass.multipassd; sudo snap install snapcraft --classic; 
+          sudo chmod a+w /var/snap/multipass/common/multipass_socket || true; sudo snap restart multipass.multipassd; sleep 15
 
       - id: build-snap
         name: Build snap
         run: |
-          snapcraft --debug; journalctl -xu multipass.multipassd
+          snapcraft --debug
 
       - name: Upload built snap job artifact
         uses: actions/upload-artifact@v3

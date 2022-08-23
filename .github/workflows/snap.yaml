@@ -23,13 +23,14 @@ jobs:
       - name: Install environment pre-requisites
         run: |
           sudo snap install core; snap version; journalctl -xu snapd.service; systemctl status snapd.service
-          sudo snap refresh snapcraft; sudo snap install multipass; sudo snap refresh multipass; journalctl -xu snapd.service
-          sudo snap install snapcraft --classic
+          sudo snap refresh snapcraft; sudo snap install multipass; ls -la /var/snap/multipass/common/multipass_socket;
+          sudo snap refresh multipass; groups | grep sudo; snap info multipass
+          journalctl -xu multipass.multipassd; sudo snap install snapcraft --classic
 
       - id: build-snap
         name: Build snap
         run: |
-          snapcraft --debug
+          snapcraft --debug; journalctl -xu multipass.multipassd
 
       - name: Upload built snap job artifact
         uses: actions/upload-artifact@v3

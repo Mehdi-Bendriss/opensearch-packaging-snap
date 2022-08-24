@@ -12,7 +12,7 @@ description: |
 
 grade: devel # must be 'stable' to release into candidate/stable channels
 
-confinement: strict # use 'strict' once you have the right plugs and slots
+confinement: devmode # use 'strict' once you have the right plugs and slots
 
 assumes:
   - command-chain
@@ -39,6 +39,8 @@ hooks:
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
 apps:
+  # ----
+  # Opensearch main service
   daemon:
     daemon: simple
     install-mode: disable
@@ -57,17 +59,57 @@ apps:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
-  add-plugin:
-    command: wrappers/add-plugin.sh
+  # ----
+  # Plugins management
+  plugins-add:
+    command: wrappers/plugins/add.sh
     environment:
       OPENSEARCH_HOME: ${SNAP_DATA}
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
 
-  list-plugins:
-    command: wrappers/list-plugins.sh
+  plugins-list:
+    command: wrappers/plugins/list.sh
     environment:
       OPENSEARCH_HOME: ${SNAP_DATA}
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+
+  plugins-remove:
+    command: wrappers/plugins/remove.sh
+    environment:
+      OPENSEARCH_HOME: ${SNAP_DATA}
+      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+
+  # ----
+  # Security basic management
+  security-enable:
+    command: ""
+
+  security-disable:
+    command: ""
+
+  security-tls-certificates-on-leader-create:
+    command: ""
+
+  security-tls-certificates-on-leader-import:
+    command: ""
+
+  security-tls-certificates-on-node-create:
+    command: ""
+
+  security-tls-certificates-on-node-import:
+    command: ""
+
+  security-tls-certificates-load:
+    command: ""
+
+  security-tls-certificates-unload:
+    command: ""
+
+  security-rest-auth-basic-set:
+    command: ""
+
+  security-rest-auth-basic-unset:
+    command: ""
 
 
 parts:
@@ -77,8 +119,18 @@ parts:
     source-type: local
     organize:
       start.sh: wrappers/start.sh
-      add-plugin.sh: wrappers/add-plugin.sh
-      list-plugins.sh: wrappers/list-plugins.sh
+
+      plugins/add.sh: wrappers/plugins/add.sh
+      plugins/list.sh: wrappers/plugins/list.sh
+      plugins/remove.sh: wrappers/plugins/remove.sh
+
+      security/enable.sh: wrappers/security/enable.sh
+      security/disable.sh: wrappers/security/disable.sh
+      security/tls.certificates.on-leader.create.sh: wrappers/security/tls.certificates.on-leader.create.sh
+      security/tls.certificates.on-leader.import.sh: wrappers/security/tls.certificates.load.sh
+      security/tls.certificates.unload.sh: wrappers/security/tls.certificates.unload.sh
+      security/rest.auth.basic.set.sh: wrappers/security/rest.auth.basic.set.sh
+      security/rest.auth.basic.unset.sh: wrappers/security/rest.auth.basic.set.sh
 
   wrapper-configs:
     plugin: dump

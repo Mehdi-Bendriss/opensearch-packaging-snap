@@ -2,6 +2,7 @@ name: Build OpenSearch from source and run tests
 
 env:
   VERSION: 2.2.0
+  RELEASE: edge
 
 on:
   push:
@@ -27,7 +28,7 @@ jobs:
       - name: Upload built snap job artifact
         uses: actions/upload-artifact@v3
         with:
-          name: opensearch_snap
+          name: opensearch_snap_amd64
           path: opensearch_${{env.VERSION}}_amd64.snap
 
   publish:
@@ -35,9 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
-    env:
-      SNAPCRAFT_CREDENTIALS_KEY: ${{ secrets.SNAPCRAFT_CREDENTIALS_KEY }}
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -47,22 +45,13 @@ jobs:
       - name: Download snap file
         uses: actions/download-artifact@v3
         with:
-          name: opensearch_snap
+          name: opensearch_snap_amd64
           path: ./
 
-      - name: Decrypt credentials
-        run: >
-          pwd 
-          ls -la
-          openssl aes-256-cbc -d -pbkdf2 \
-            -in .github/workflows/snapcraft-credentials.enc \
-            -out decrypted_credentials \
-            -k $SNAPCRAFT_CREDENTIALS_KEY
-
-      - name: Authenticate snapcraft
-        run: |
-          snapcraft login --with decrypted_credentials
-
-#      - name: Publish snap
-#        run: |
-#          snapcraft push *.snap --release edge
+      - name: Publish snap to Store
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_CREDENTIALS_KEY: ${{ secrets.STORE_LOGIN }}
+        with:
+          snap: opensearch_${{env.VERSION}}_amd64.snap
+          release: ${{env.RELEASE}}

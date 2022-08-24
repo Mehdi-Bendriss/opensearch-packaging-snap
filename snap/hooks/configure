@@ -72,6 +72,16 @@ function dir_copy_if_not_exists () {
     fi
 }
 
+function file_copy () {
+    cp -n -p "${SNAP}/$1" "$2"
+
+    if [[ $# -eq 3 ]]; then
+        set_access_restrictions "$2/$1" "$3"
+    else
+        set_access_restrictions "$2/$1"
+    fi
+}
+
 function set_property_line_if_not_exists () {
     if grep -q "^$2" "$1";
     then
@@ -94,6 +104,11 @@ system_conf_override
 
 # -------------------------------
 
+add_folder "${SNAP_COMMON}/backups" 774
+dir_copy_if_not_exists "config" "${SNAP_COMMON}/backups" 774
+
+# -------------------------------
+
 # Opensearch install folders and set config
 dir_copy_if_not_exists "bin" "${SNAP_DATA}" 770
 dir_copy_if_not_exists "jdk" "${SNAP_DATA}" 770
@@ -108,6 +123,7 @@ add_folder "${SNAP_COMMON}/logs" 774
 add_folder "${SNAP_COMMON}/tmp" 770
 add_folder "${SNAP_COMMON}/certificates" 770
 
+# Change conf to set log and data paths for both opensearch.yaml and jvm.options
 set_property_line_if_not_exists "${SNAP_COMMON}/config/opensearch.yml" "path.data:" "path.data: ${SNAP_COMMON}/data"
 set_property_line_if_not_exists "${SNAP_COMMON}/config/opensearch.yml" "path.logs:" "path.logs: ${SNAP_COMMON}/logs"
 

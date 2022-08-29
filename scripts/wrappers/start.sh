@@ -5,6 +5,7 @@ set -eux
 
 function snap_logging () {
     SNAP_ACTIONS_LOG_DIR="/etc/systemd/system/snap.${PROJECT_NAME}.daemon.service.d/logs"
+    mkdir -p "${SNAP_ACTIONS_LOG_DIR}"
 
     script_log="${SNAP_ACTIONS_LOG_DIR}/$1.log"
     exec 1>>"${script_log}"
@@ -16,7 +17,7 @@ function disable_security_plugin () {
     key="plugins.security.disabled:"
     conf_file="${OPENSEARCH_PATH_CONF}/opensearch.yml"
 
-    if grep -q "^${key}" "${conf_file}";
+    if grep -q "^#\?\s*${key}" "${conf_file}";
     then
         sed -i "s@.*${key}.*@${key} true@" "${conf_file}"
     else
@@ -35,7 +36,7 @@ then
     exit 1
 fi
 
-# snap_logging "daemon"
+snap_logging "daemon"
 
 # ---------------------------------
 

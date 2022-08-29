@@ -3,14 +3,14 @@
 
 usage() {
 cat << EOF
-usage: snap ... -p password
+usage: create-certificate.sh --password password ...
 To be ran / setup once per cluster.
--p    | --password        (Required)    Password for encrypting the key
--t    | --type            (Required)    Enum of either: root, admin, node, client
--n    | --name            (Optional)    Name of certificate: required for nodes and clients
--s    | --subject         (Optional)    Subject for the certificate, defaults to CN=localhost
--r    | --root-ca         (Optional)    Must be set for creating nodes / client certificates
--h    | --help                          Shows help menu
+--password        (Required)    Password for encrypting the key
+--type            (Required)    Enum of either: root, admin, node, client
+--name            (Optional)    Name of certificate: required for nodes and clients
+--subject         (Optional)    Subject for the certificate, defaults to CN=localhost
+--target-dir      (Optional)    The target directory where the certificates and related resources are creates
+--help                          Shows help menu
 EOF
 }
 
@@ -29,45 +29,54 @@ password=""
 type=""
 name=""
 subject=""
+target_dir="."
 root_ca=""
 
 
 
 # Args handling
 function parse_args () {
-    while [ "$1" != "" ]; do
+    LONG_OPTS_LIST=(
+        "password"
+        "type"
+        "name"
+        "subject"
+        "target-dir"
+        "help"
+    )
+    opts=$(getopt \
+      --longoptions "$(printf "%s:," "${LONG_OPTS_LIST[@]}")" \
+      --name "$(basename "$0")" \
+      --options "" \
+      -- "$@"
+    )
+    eval set -- "${opts}"
+
+    while [ $# -gt 0 ]; do
         case $1 in
-            -p | --password)
+            --password)
                 shift
                 password=$1
                 ;;
-
-            -t | --type)
+            --type)
                 shift
                 type=$1
                 ;;
-
-            -n | --name)
+            --name)
                 shift
                 name=$1
                 ;;
-
-            -s | --subject)
+            --subject)
                 shift
                 subject=$1
                 ;;
-
-            -r | --root-ca)
+            --target-dir)
                 shift
-                root_ca=$1
+                target_dir=$1
                 ;;
-
-            -h | --help) usage
+            --help) usage
                 exit
                 ;;
-
-            * ) usage
-                exit 1
         esac
         shift
     done
@@ -75,7 +84,7 @@ function parse_args () {
 
 function set_defaults () {
     if [ -z "${subject}" ] && [ "${type}" != "client" ]; then
-        subject="${SUBJECTS[${type}]}"
+        subject="${SUBJECTS["${type}"]}"
     fi
 
     if [ "${type}" == "node" ] || [ "${type}" == "client" ]; then
@@ -83,28 +92,36 @@ function set_defaults () {
     else
         name="${type}"
     fi
+
+    if [ -z "${target_dir}" ]; then
+        target_dir="."
+    fi
 }
 
 function validate_args () {
     err_message=""
     if [ -z "${password}" ]; then
-        err_message="\t- Password is required \n"
+        err_message=" - '--password' is required \n"
     fi
 
     if ! echo "${ALLOWED_CERT_TYPES[*]}" | grep -wq "${type}"; then
-        err_message="\t- The cert type must be set to one of: ${ALLOWED_CERT_TYPES[*]}"
+        err_message="${err_message}- '--type' must be set to one of: ${ALLOWED_CERT_TYPES[*]}.\n"
     fi
 
     if [ -n "${name}" ] && [ "${name}" == "${type}." ]; then
-        err_message="\t- The name of the resource must be provided for nodes and clients (i.e: --name node1)."
+        err_message="${err_message}- '--name' of the resource must be provided for nodes and clients (i.e: --name node1).\n"
     fi
 
     if [ -z "${subject}" ]; then
-        err_message="${err_message}\t- The subject must be correctly set if specified, as it overrides the default value for local setups otherwise. \n"
+        err_message="${err_message}- '--subject' must be correctly set if specified, as it overrides the default value for local setups otherwise. \n"
+    fi
+
+    if [ -z "${target_dir}" ]; then
+        err_message="${err_message}- '--target-dir' must be a correct path, or not set to point to the current directory. \n"
     fi
 
     if [ -n "${err_message}" ]; then
-        echo -e "The following errors occurred: \n${err_message}"
+        echo -e "The following errors occurred: \n${err_message}Refer to the help menu."
         exit 1
     fi
 }
@@ -114,7 +131,7 @@ function validate_args () {
 function create_root_certificate () {
     # generate a private key
     openssl genrsa \
-        -out root-ca-key.pem \
+        -out "${target_dir}"/root-ca-key.pem \
         -aes256 \
         -passout pass:"${password}" \
         ${KEY_SIZE_BITS}
@@ -124,8 +141,8 @@ function create_root_certificate () {
         -new \
         -x509 \
         -sha256 \
-        -key root-ca-key.pem \
-        -out root-ca.pem \
+        -key "${target_dir}"/root-ca-key.pem \
+        -out "${target_dir}"/root-ca.pem \
         -subj "${subject}" \
         -days ${LIFESPAN_DAYS}
 }
@@ -134,7 +151,7 @@ function create_root_certificate () {
 function create_certificate () {
     # generate a private key certificate
     openssl genrsa \
-        -out "${name}"-key-temp.pem \
+        -out "${target_dir}"/"${name}"-key-temp.pem \
         -aes256 \
         -passout pass:"${password}" \
         ${KEY_SIZE_BITS}
@@ -143,36 +160,37 @@ function create_certificate () {
     openssl pkcs8 \
         -inform PEM \
         -outform PEM \
-        -in "${name}"-key-temp.pem \
+        -in "${target_dir}"/"${name}"-key-temp.pem \
         -topk8 \
         -nocrypt \
         -v1 PBE-SHA1-3DES \
-        -out "${name}"-key.pem
+        -out "${target_dir}"/"${name}"-key.pem
 
     # create a CSR
     openssl req \
         -new \
-        -key "${name}"-key.pem \
+        -key "${target_dir}"/"${name}"-key.pem \
         -subj "${subject}" \
-        -out "${name}".csr
+        -out "${target_dir}"/"${name}".csr
 
     # generate the admin certificate
     openssl x509 \
         -req \
-        -in "${name}".csr \
-        -CA root-ca.pem \
-        -CAkey root-ca-key.pem \
+        -in "${target_dir}"/"${name}".csr \
+        -CA "${target_dir}"/root-ca.pem \
+        -CAkey "${target_dir}"/root-ca-key.pem \
         -CAcreateserial \
         -sha256 \
-        -out "${name}".pem \
+        -out "${target_dir}"/"${name}".pem \
         -days ${LIFESPAN_DAYS}
 }
-
 
 
 parse_args "$@"
 set_defaults
 validate_args
+
+mkdir -p "${target_dir}"
 
 if [[ $type == "root" ]]; then
     create_root_certificate

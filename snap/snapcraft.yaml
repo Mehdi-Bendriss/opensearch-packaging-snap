@@ -38,109 +38,89 @@ hooks:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
+# TODO: environment:
+environment:
+  PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+  PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
+
+  SNAP_LOG_DIR: ${SNAP_COMMON}/ops/snap/logs
+
+  OPENSEARCH_HOME: ${SNAP_DATA}
+  OPENSEARCH_JAVA_HOME: ${SNAP_DATA}/jdk
+  OPENSEARCH_PATH_CONF: ${SNAP_COMMON}/config
+  OPENSEARCH_TMPDIR: ${SNAP_COMMON}/tmp
+
+
 apps:
   # ----
   # Opensearch main service
   daemon:
     daemon: simple
     install-mode: disable
-    command: wrappers/start.sh
-    reload-command: wrappers/start.sh
+    command: ops/start.sh
+    reload-command: ops/start.sh
     plugs:
       - network
       - network-bind
       - systemd-write
       - mount-observe
-    environment:
-      OPENSEARCH_HOME: ${SNAP_DATA}
-      OPENSEARCH_JAVA_HOME: ${SNAP_DATA}/jdk
-      OPENSEARCH_PATH_CONF: ${SNAP_COMMON}/config
-      OPENSEARCH_TMPDIR: ${SNAP_COMMON}/tmp
-      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
-      PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
   # ----
   # Plugins management
   plugins-add:
-    command: wrappers/plugins/add.sh
-    environment:
-      OPENSEARCH_HOME: ${SNAP_DATA}
-      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+    command: ops/plugins/add.sh
 
   plugins-list:
-    command: wrappers/plugins/list.sh
-    environment:
-      OPENSEARCH_HOME: ${SNAP_DATA}
-      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+    command: ops/plugins/list.sh
 
   plugins-remove:
-    command: wrappers/plugins/remove.sh
-    environment:
-      OPENSEARCH_HOME: ${SNAP_DATA}
-      PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
+    command: ops/plugins/remove.sh
 
   # ----
   # Security basic management
-  security-enable:
-    command: ""
+  security-tls-init-cluster:
+    command: ops/security/tls/init-cluster.sh
+    environment:
+      OPS_ROOT: ${SNAP}/ops
+      OPENSEARCH_PATH_CERTS: ${OPENSEARCH_PATH_CONF}/certificates
 
-  security-disable:
-    command: ""
+  security-tls-add-node:
+    command: ops/security/tls/add-node.sh
 
-  security-tls-certificates-on-leader-create:
-    command: ""
-
-  security-tls-certificates-on-leader-import:
-    command: ""
-
-  security-tls-certificates-on-node-create:
-    command: ""
-
-  security-tls-certificates-on-node-import:
-    command: ""
-
-  security-tls-certificates-load:
-    command: ""
-
-  security-tls-certificates-unload:
-    command: ""
-
-  security-rest-auth-basic-set:
-    command: ""
-
-  security-rest-auth-basic-unset:
-    command: ""
+#  security-tls-add-client:
+#    command: ""
 
 
 parts:
   wrapper-scripts:
-    plugin: dump
-    source: ./wrappers
+    plugin: nil
+    source: ./scripts
     source-type: local
-    organize:
-      start.sh: wrappers/start.sh
-
-      plugins/add.sh: wrappers/plugins/add.sh
-      plugins/list.sh: wrappers/plugins/list.sh
-      plugins/remove.sh: wrappers/plugins/remove.sh
-
-      security/enable.sh: wrappers/security/enable.sh
-      security/disable.sh: wrappers/security/disable.sh
-      security/tls.certificates.on-leader.create.sh: wrappers/security/tls.certificates.on-leader.create.sh
-      security/tls.certificates.on-leader.import.sh: wrappers/security/tls.certificates.load.sh
-      security/tls.certificates.unload.sh: wrappers/security/tls.certificates.unload.sh
-      security/rest.auth.basic.set.sh: wrappers/security/rest.auth.basic.set.sh
-      security/rest.auth.basic.unset.sh: wrappers/security/rest.auth.basic.set.sh
+    override-build: |
+      target_dir="${SNAPCRAFT_PART_INSTALL}/ops"
+      
+      rm -rf "${target_dir}"
+      
+      mkdir -p "${target_dir}"/logs/
+      
+      cp -r wrappers/. "${target_dir}"
+      cp -r helpers/ "${target_dir}/helpers"
+    build-packages:
+      - libcrypt1
+      - libexpat-dev
+      - zlib1g
+    stage-snaps:
+      - yq
 
   wrapper-configs:
     plugin: dump
     source: snap/local
     organize:
-      systemd/override.conf: etc/systemd/override.conf
+      systemd/override.conf: /ops/sys/etc/systemd/override.conf
 
   opensearch:
     plugin: dump
-    source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-$SNAPCRAFT_PROJECT_VERSION-linux.tar.gz
+    source: https://opensearch-builds.s3.eu-west-1.amazonaws.com/core/opensearch-${SNAPCRAFT_PROJECT_VERSION}-linux.tar.gz
     source-type: tar
     stage-packages:
       - util-linux
@@ -154,3 +134,4 @@ parts:
       - libpsm-infinipath1
       - libboost-all-dev
       - libasound2
+      - libpsm2-2-compat

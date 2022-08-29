@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eux
+
 usage() {
 cat << EOF
 usage: root/main.sh --password password ...
@@ -7,6 +9,7 @@ To be ran / setup once per cluster.
 --password        (Required)    Password for the root key
 --rest-with-tls   (Optional)    Enum of either: yes (default), no. Enables the certificate for both the transport and rest layers or just the former
 --subject         (Optional)    Subject for the certificate, defaults to CN=localhost
+--target-dir      (Optional)    The target directory where the certificates and related resources are created
 --help                          Shows help menu
 EOF
 }
@@ -18,19 +21,21 @@ CURRENT_DIR="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"
 rest_with_tls="yes"
 subject=""
 password=""
+target_dir=""
 
 
 # Args handling
 function parse_args () {
-    LONG_OPTS_LIST=(
+    local LONG_OPTS_LIST=(
         "password"
         "subject"
         "rest-with-tls"
+        "target-dir"
         "help"
     )
-    opts=$(getopt \
+    local opts=$(getopt \
       --longoptions "$(printf "%s:," "${LONG_OPTS_LIST[@]}")" \
-      --name "$(basename "$0")" \
+      --name "$(readlink -f "${BASH_SOURCE}")" \
       --options "" \
       -- "$@"
     )
@@ -47,6 +52,9 @@ function parse_args () {
             --rest-with-tls) shift
                 rest_with_tls=$1
                 ;;
+            --target-dir) shift
+                target_dir=$1
+                ;;
             --help) usage
                 exit
                 ;;
@@ -57,7 +65,7 @@ function parse_args () {
 
 
 function set_defaults () {
-    if [ -z "${cert_for_all}" ] || [ "${cert_for_all}" != "no" ]; then
+    if [ -z "${rest_with_tls}" ] || [ "${rest_with_tls}" != "no" ]; then
         rest_with_tls="yes"
     fi
 }
@@ -80,6 +88,7 @@ source \
     "${OPS_ROOT}"/helpers/create-certificate.sh \
     --password "${password}" \
     --subject "${subject}" \
+    --target-dir "${target_dir}" \
     --type "root"
 
 

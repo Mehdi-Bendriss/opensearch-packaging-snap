@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eux
+
 usage() {
 cat << EOF
 usage: node/main.sh --password password ...
@@ -7,6 +9,7 @@ To be ran once a new node joins the cluster.
 --password        (Required)    Password for encrypting the key
 --name            (Required)    Name of certificate, i.e: "node1"
 --subject         (Optional)    Subject for the certificate, defaults to ....CN=localhost
+--target-dir      (Optional)    The target directory where the certificates and related resources are created
 --help                          Shows help menu
 EOF
 }
@@ -17,19 +20,22 @@ CURRENT_DIR="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"
 
 # args
 name=""
+password=""
+subject=""
+target_dir=""
 
 
 # Args handling
 function parse_args () {
-    LONG_OPTS_LIST=(
+    local LONG_OPTS_LIST=(
         "password"
         "name"
         "subject"
         "help"
     )
-    opts=$(getopt \
+    local opts=$(getopt \
       --longoptions "$(printf "%s:," "${LONG_OPTS_LIST[@]}")" \
-      --name "$(basename "$0")" \
+      --name "$(readlink -f "${BASH_SOURCE}")" \
       --options "" \
       -- "$@"
     )
@@ -37,11 +43,17 @@ function parse_args () {
 
     while [ $# -gt 0 ]; do
         case $1 in
-            --password | --subject) shift
-                shift
+            --password) shift
+                password=$1
                 ;;
             --name) shift
                 name=$1
+                ;;
+            --subject) shift
+                subject=$1
+                ;;
+            --target_dir) shift
+                target_dir=$1
                 ;;
             --help) usage
                 exit
@@ -72,7 +84,13 @@ function update_opensearch_conf () {
 
 parse_args "$@"
 
-printf "${OPS_ROOT}/helpers/create-certificate.sh: %s" "$@"
-source "${OPS_ROOT}"/helpers/create-certificate.sh "$@"
+
+source \
+    "${OPS_ROOT}"/helpers/create-certificate.sh \
+    --password "${password}" \
+    --subject "${subject}" \
+    --target-dir "${target_dir}" \
+    --type "node"
+
 
 update_opensearch_conf

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eux
+
 
 usage() {
 cat << EOF
@@ -23,16 +25,17 @@ rest_with_tls=""
 
 # Args handling
 function parse_args () {
-    LONG_OPTS_LIST=(
+    local LONG_OPTS_LIST=(
         "root-password"
         "admin-password"
         "subject"
         "rest-with-tls"
         "help"
     )
-    opts=$(getopt \
+    # shellcheck disable=SC2155
+    local opts=$(getopt \
       --longoptions "$(printf "%s:," "${LONG_OPTS_LIST[@]}")" \
-      --name "$(basename "$0")" \
+      --name "$(readlink -f "${BASH_SOURCE}")" \
       --options "" \
       -- "$@"
     )
@@ -78,10 +81,11 @@ function validate_args () {
 }
 
 
+source "${OPS_ROOT}"/helpers/snap-logger.sh "init-cluster"
+
+
 parse_args "$@"
 validate_args
-
-# pushd "${OPS_ROOT}/security/tls" || exit
 
 TLS_DIR="${OPS_ROOT}/security/tls"
 
@@ -96,8 +100,11 @@ source \
 # create the admin cert
 source \
     "${TLS_DIR}"/admin/main.sh \
+    --root-password "${root_password}" \
     --password "${admin_password}" \
     --subject "${subject}" \
     --target-dir "${OPENSEARCH_PATH_CERTS}"
 
-# popd || exit
+
+chmod -R 660 "${OPENSEARCH_PATH_CERTS}"
+chown -R snap_daemon:snap_daemon "${OPENSEARCH_PATH_CERTS}"

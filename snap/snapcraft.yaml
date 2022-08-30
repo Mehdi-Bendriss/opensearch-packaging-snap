@@ -14,13 +14,16 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
+
 assumes:
   - command-chain
   - snap-env
   - snapd2.56
 
+
 system-usernames:
   snap_daemon: shared
+
 
 plugs:
   systemd-write:
@@ -38,7 +41,7 @@ hooks:
       PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
       PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
 
-# TODO: environment:
+
 environment:
   PROJECT_NAME: ${SNAPCRAFT_PROJECT_NAME}
   PROJECT_VERSION: ${SNAPCRAFT_PROJECT_VERSION}
@@ -52,8 +55,6 @@ environment:
 
 
 apps:
-  # ----
-  # Opensearch main service
   daemon:
     daemon: simple
     install-mode: disable
@@ -64,10 +65,16 @@ apps:
       - network-bind
       - systemd-write
       - mount-observe
+    environment:
+      OPS_ROOT: ${SNAP}/ops
 
-  # ----
-  # Plugins management
-  plugins-add:
+  setup:
+    command: ops/setup.sh
+    environment:
+      OPS_ROOT: ${SNAP}/ops
+      OPENSEARCH_PATH_CERTS: ${OPENSEARCH_PATH_CONF}/certificates
+
+  plugin-add:
     command: ops/plugins/add.sh
 
   plugins-list:
@@ -76,22 +83,12 @@ apps:
   plugins-remove:
     command: ops/plugins/remove.sh
 
-  # ----
-  # Security basic management
-  security-tls-init-cluster:
-    command: ops/security/tls/init-cluster.sh
-    environment:
-      OPS_ROOT: ${SNAP}/ops
-      OPENSEARCH_PATH_CERTS: ${OPENSEARCH_PATH_CONF}/certificates
-
-  security-tls-add-node:
-    command: ops/security/tls/add-node.sh
-
-#  security-tls-add-client:
-#    command: ""
-
-
 parts:
+  python-requirements:
+    plugin: python
+    python-packages:
+      - ruamel.yaml
+
   wrapper-scripts:
     plugin: nil
     source: ./scripts

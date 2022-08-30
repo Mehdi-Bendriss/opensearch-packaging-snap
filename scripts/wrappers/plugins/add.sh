@@ -1,22 +1,49 @@
 #!/usr/bin/env bash
 
 
+usage() {
+cat << EOF
+usage: snap run opensearch.plugins-add --name [opensearch.]security --location https://..plugin.zip
+To be ran / setup once per cluster.
+--name        (Required)    Name of the plugin, can be prefixed by "opensearch." or not.
+--location    (Required)    Location of the zip plugin, served through https:// or file:///
+--help                      Shows help menu
+EOF
+}
+
+
+# Args
 name=""
 location=""  # zip served through https:// or file:///
 
 
+# Args handling
 function parse_args () {
+    local LONG_OPTS_LIST=(
+        "name"
+        "location"
+        "help"
+    )
+    local opts=$(getopt \
+      --longoptions "$(printf "%s:," "${LONG_OPTS_LIST[@]}")" \
+      --name "$(readlink -f "${BASH_SOURCE}")" \
+      --options "" \
+      -- "$@"
+    )
+    eval set -- "${opts}"
+
     while [ $# -gt 0 ]; do
-        if [[ $1 == "--help" ]]; then
-            usage "Usage: $0 --name [opensearch.]PLUGIN_NAME --location 'https:// | file:///'...plugin.zip"
-            exit 0
-        fi
-
-        if [[ $1 == *"--"* ]]; then
-            param="${1/--/}"
-            declare "$param"="$2"
-        fi
-
+        case $1 in
+            --name) shift
+                name=$1
+                ;;
+            --location) shift
+                location=$1
+                ;;
+            --help) usage
+                exit
+                ;;
+        esac
         shift
     done
 }
@@ -42,9 +69,10 @@ function install_plugin () {
 
 }
 
+parse_args "$@"
 
-if [[ ! ${name} == "opensearch-*" ]];
-then
+
+if [[ "${name}" != "opensearch-*" ]]; then
     name="opensearch-${name}"
 fi
 install_plugin "${name}" "${location}"

@@ -89,7 +89,7 @@ function set_defaults () {
     fi
 
     if [ "${type}" == "node" ] || [ "${type}" == "client" ]; then
-        name="${type}.${name}"
+        name="${type}-${name}"
     else
         name="${type}"
     fi
@@ -105,12 +105,12 @@ function set_defaults () {
 
 function validate_args () {
     err_message=""
-    if [ -z "${password}" ]; then
-        err_message=" - '--password' is required \n"
-    fi
+#    if [ -z "${password}" ]; then
+#        err_message=" - '--password' is required \n"
+#    fi
 
     if [ -z "${root_password}" ] && [ "${type}" != "root" ]; then
-        err_message="${err_message}- '--root-password' must be set when a non-root cert is requested.\n"
+        err_message="${err_message}- '--root-password' must be set.\n"
     fi
 
     if ! echo "${ALLOWED_CERT_TYPES[*]}" | grep -wq "${type}"; then

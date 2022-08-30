@@ -59,7 +59,7 @@ function install_plugin () {
         echo y | "${OPENSEARCH_HOME}"/bin/opensearch-plugin install "$2"
     fi
 
-    INSTALLATION_PATH="${OPENSEARCH_HOME}/plugins/$1"
+    INSTALLATION_PATH="${OPENSEARCH_PLUGINS}/$1"
     CONFIG_PATH="${OPENSEARCH_PATH_CONF}/$1"
 
     for path in "${INSTALLATION_PATH}" "${CONFIG_PATH}"; do

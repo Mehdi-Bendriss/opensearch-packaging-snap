@@ -31,7 +31,7 @@ declare -A SUBJECTS=( ["root"]="/C=DE/ST=Berlin/L=Berlin/O=Canonical/OU=DataPlat
 password=""
 root_password=""
 type=""
-name=""
+res_name=""
 subject=""
 target_dir=""
 
@@ -67,7 +67,7 @@ function parse_args () {
                 type=$1
                 ;;
             --name) shift
-                name=$1
+                res_name=$1
                 ;;
             --subject) shift
                 subject=$1
@@ -89,9 +89,9 @@ function set_defaults () {
     fi
 
     if [ "${type}" == "node" ] || [ "${type}" == "client" ]; then
-        name="${type}-${name}"
+        res_name="${type}-${res_name}"
     else
-        name="${type}"
+        res_name="${type}"
     fi
 
     if [ -z "${target_dir}" ]; then
@@ -117,7 +117,7 @@ function validate_args () {
         err_message="${err_message}- '--type' must be set to one of: ${ALLOWED_CERT_TYPES[*]}.\n"
     fi
 
-    if [ -n "${name}" ] && [ "${name}" == "${type}." ]; then
+    if [ -n "${res_name}" ] && [ "${res_name}" == "${type}." ]; then
         err_message="${err_message}- '--name' of the resource must be provided for nodes and clients (i.e: --name node1).\n"
     fi
 
@@ -161,7 +161,7 @@ function create_root_certificate () {
 function create_certificate () {
     # generate a private key certificate
     openssl genrsa \
-        -out "${target_dir}/${name}-key-temp.pem" \
+        -out "${target_dir}/${res_name}-key-temp.pem" \
         -aes256 \
         -passout pass:"${password}" \
         ${KEY_SIZE_BITS}
@@ -170,30 +170,30 @@ function create_certificate () {
     openssl pkcs8 \
         -inform PEM \
         -outform PEM \
-        -in "${target_dir}/${name}-key-temp.pem" \
+        -in "${target_dir}/${res_name}-key-temp.pem" \
         -topk8 \
         -nocrypt \
         -v1 PBE-SHA1-3DES \
         -passin pass:"${password}" \
-        -out "${target_dir}/${name}-key.pem"
+        -out "${target_dir}/${res_name}-key.pem"
 
     # create a CSR
     openssl req \
         -new \
-        -key "${target_dir}/${name}-key.pem" \
+        -key "${target_dir}/${res_name}-key.pem" \
         -subj "${subject}" \
-        -out "${target_dir}/${name}.csr"
+        -out "${target_dir}/${res_name}.csr"
 
     # generate the admin certificate
     openssl x509 \
         -req \
-        -in "${target_dir}/${name}.csr" \
+        -in "${target_dir}/${res_name}.csr" \
         -CA "${target_dir}/root-ca.pem" \
         -CAkey "${target_dir}/root-ca-key.pem" \
         -CAcreateserial \
         -sha256 \
         -passin pass:"${root_password}" \
-        -out "${target_dir}/${name}.pem" \
+        -out "${target_dir}/${res_name}.pem" \
         -days ${LIFESPAN_DAYS}
 }
 

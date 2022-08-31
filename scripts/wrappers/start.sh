@@ -79,7 +79,10 @@ fi
     --clear-groups \
     --reuid snap_daemon \
     --regid snap_daemon -- \
-    "${OPENSEARCH_HOME}"/bin/opensearch
+    "${OPENSEARCH_HOME}"/bin/opensearch &
+
+# give it some time to bootstrap
+sleep 30s
 
 
 # run security_admin tool if security enabled
@@ -95,7 +98,7 @@ if [ "${init_security}" == "yes" ]; then
     )
 
     if [ -n "${admin_password}" ]; then
-        sec_args+=("-keypass" "${admin_password}")
+        sec_args+=("-keypass" "admin1234") # "${admin_password}"
     fi
 
     source \

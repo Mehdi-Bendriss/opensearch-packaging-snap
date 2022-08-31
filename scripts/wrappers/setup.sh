@@ -231,5 +231,5 @@ if [ "${tls_self_managed}" ]; then
 fi
 
 
-chmod -R 660 "${OPENSEARCH_PATH_CERTS}"
+chmod -R 774 "${OPENSEARCH_PATH_CERTS}"
 chown -R snap_daemon:snap_daemon "${OPENSEARCH_PATH_CERTS}"

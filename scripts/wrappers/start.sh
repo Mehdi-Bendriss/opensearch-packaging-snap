@@ -8,11 +8,13 @@ usage() {
 cat << EOF
 usage: start.sh --init-security yes --admin-password ...
 To be ran / setup once per cluster.
---init-security   (Optional)    Enum of either: yes, no (default). Should be ran ONCE per cluster IF security enabled.
+--init-security   (Optional)    Enum of either: yes (default), no . Should be ran ONCE per cluster IF security enabled.
 --admin-password  (Optional)    Passphrase of the admin key
 --help                          Shows help menu
 EOF
 }
+
+# TODO: change defaults and register the service arguments in an arguments file
 
 
 # Args
@@ -53,8 +55,8 @@ function parse_args () {
 }
 
 function set_defaults () {
-    if [ -z "${init_security}" ] || [ "${init_security}" != "yes" ]; then
-        init_security="no"
+    if [ -z "${init_security}" ] || [ "${init_security}" != "no" ]; then
+        init_security="yes"
     fi
 }
 

@@ -47,7 +47,7 @@ jobs:
         run: |
           sudo snap install opensearch_${{env.VERSION}}_amd64.snap --dangerous
           sudo snap connect opensearch:systemd-write
-          
+
           sudo snap restart opensearch.daemon
           sleep 30s
           curl -XGET http://localhost:9200 

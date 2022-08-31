@@ -9,9 +9,9 @@ usage: init.sh --root-password password ...
 To be ran / setup once per cluster.
 --cluster-name        (Required)      Name of the cluster
 --node-name           (Required)      Name of the current node
---node-roles          (Required)      Type of the node, comma separated combination of: cluster_manager, data, voting_only
+--node-roles          (Required)      Type of the node, array combination of: [cluster_manager, data, voting_only, ..]
 --node-host           (Required)      IP address used to bind the node, default: [ _local_, _site_ ]
---seed-hosts          (Required)      Private IP of all the cluster-manager eligible nodes
+--seed-hosts          (Required)      Private IP of all the cluster-manager eligible nodes, default: ["127.0.0.1", "[::1]"]
 --security-disabled   (Optional)      Enum of either yes, no (default). Enables or disables the security plugin.
 --tls-self-managed    (Optional)      Enum of either yes (default), no. Generates and self-signs the certificates.
 --tls-init-setup      (Optional)      Enum of either yes, no (default). Creates a root and admin certs if set to yes.
@@ -21,7 +21,7 @@ To be ran / setup once per cluster.
 --tls-admin-subject   (Optional)      Subject for the admin certificate
 --tls-node-password   (Optional)      Password for encrypting the node key
 --tls-node-subject    (Optional)      Subject for the node certificate
---rest-with-tls       (Optional)      Enum of either: yes (default), no. Enables the certificate for both the transport and rest layers or just the former
+--tls-for-rest        (Optional)      Enum of either: yes (default), no. Enables the certificate for both the transport and rest layers or just the former
 --help                                Shows help menu
 EOF
 }
@@ -143,6 +143,10 @@ function set_defaults () {
         node_host="[_local_, _site_]"
     fi
 
+    if [ -z "${seed_hosts}" ]; then
+        node_host="[\"127.0.0.1\", \"[::1]\"]"
+    fi
+
     node_roles="[ ${node_roles} ]"
 
     if [ -z "${security_disabled}" ] || [ "${security_disabled}" != "yes" ]; then
@@ -155,6 +159,10 @@ function set_defaults () {
 
     if [ -z "${tls_init_setup}" ] || [ "${tls_init_setup}" != "yes" ]; then
         tls_init_setup="no"
+    fi
+
+    if [ -z "${tls_for_rest}" ] || [ "${tls_for_rest}" != "no" ]; then
+        tls_for_rest="yes"
     fi
 }
 

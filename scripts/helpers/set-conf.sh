@@ -3,7 +3,7 @@
 
 function set_yaml_prop () {
     key="${2}:"
-    full_line="${key}: ${3}"
+    full_line="${key} ${3}"
 
     if grep -q "^#\?\s*${key}" "${1}";
     then
